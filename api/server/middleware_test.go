@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/fnproject/fn/api/datastore"
+	"github.com/fnproject/fn/api/id"
 	"github.com/fnproject/fn/api/logs"
 	"github.com/fnproject/fn/api/models"
 	"github.com/fnproject/fn/api/mqs"
@@ -67,15 +68,17 @@ func TestMiddlewareChaining(t *testing.T) {
 
 func TestRootMiddleware(t *testing.T) {
 
+	myAppID := id.New().String()
+	myApp2ID := id.New().String()
 	ds := datastore.NewMockInit(
 		[]*models.App{
-			{Name: "myapp", Config: models.Config{}},
-			{Name: "myapp2", Config: models.Config{}},
+			{ID: myAppID, Name: "myapp", Config: models.Config{}},
+			{ID: myApp2ID, Name: "myapp2", Config: models.Config{}},
 		},
 		[]*models.Route{
-			{Path: "/", AppName: "myapp", Image: "fnproject/hello", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30, Headers: map[string][]string{"X-Function": {"Test"}}},
-			{Path: "/myroute", AppName: "myapp", Image: "fnproject/hello", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30, Headers: map[string][]string{"X-Function": {"Test"}}},
-			{Path: "/app2func", AppName: "myapp2", Image: "fnproject/hello", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30, Headers: map[string][]string{"X-Function": {"Test"}},
+			{Path: "/", AppID: myAppID, Image: "fnproject/hello", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30, Headers: map[string][]string{"X-Function": {"Test"}}},
+			{Path: "/myroute", AppID: myAppID, Image: "fnproject/hello", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30, Headers: map[string][]string{"X-Function": {"Test"}}},
+			{Path: "/app2func", AppID: myApp2ID, Image: "fnproject/hello", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30, Headers: map[string][]string{"X-Function": {"Test"}},
 				Config: map[string]string{"NAME": "johnny"},
 			},
 		}, nil,

@@ -20,10 +20,10 @@ func TestCallGet(t *testing.T) {
 	buf := setLogBuffer()
 
 	call := &models.Call{
-		ID:      id.New().String(),
-		AppName: "myapp",
-		Path:    "/thisisatest",
-		Image:   "fnproject/hello",
+		ID:    id.New().String(),
+		AppID: "myapp",
+		Path:  "/thisisatest",
+		Image: "fnproject/hello",
 		// Delay: 0,
 		Type:   "sync",
 		Format: "default",
@@ -43,7 +43,7 @@ func TestCallGet(t *testing.T) {
 	defer cancel()
 	ds := datastore.NewMockInit(
 		[]*models.App{
-			{Name: call.AppName},
+			{Name: call.AppID},
 		},
 		nil,
 		[]*models.Call{call},
@@ -57,7 +57,7 @@ func TestCallGet(t *testing.T) {
 		expectedCode  int
 		expectedError error
 	}{
-		{"/v1/apps//calls/" + call.ID, "", http.StatusBadRequest, models.ErrAppsMissingName},
+		{"/v1/apps//calls/" + call.ID, "", http.StatusBadRequest, models.ErrAppsMissingID},
 		{"/v1/apps/nodawg/calls/" + call.ID, "", http.StatusNotFound, models.ErrCallNotFound}, // TODO a little weird
 		{"/v1/apps/myapp/calls/" + call.ID[:3], "", http.StatusNotFound, models.ErrCallNotFound},
 		{"/v1/apps/myapp/calls/" + call.ID, "", http.StatusOK, nil},
@@ -87,10 +87,10 @@ func TestCallList(t *testing.T) {
 	buf := setLogBuffer()
 
 	call := &models.Call{
-		ID:      id.New().String(),
-		AppName: "myapp",
-		Path:    "/thisisatest",
-		Image:   "fnproject/hello",
+		ID:    id.New().String(),
+		AppID: "myapp",
+		Path:  "/thisisatest",
+		Image: "fnproject/hello",
 		// Delay: 0,
 		Type:   "sync",
 		Format: "default",
@@ -118,7 +118,7 @@ func TestCallList(t *testing.T) {
 	defer cancel()
 	ds := datastore.NewMockInit(
 		[]*models.App{
-			{Name: call.AppName},
+			{Name: call.AppID},
 		},
 		nil,
 		[]*models.Call{call, &c2, &c3},
@@ -140,7 +140,7 @@ func TestCallList(t *testing.T) {
 		expectedLen   int
 		nextCursor    string
 	}{
-		{"/v1/apps//calls", "", http.StatusBadRequest, models.ErrAppsMissingName, 0, ""},
+		{"/v1/apps//calls", "", http.StatusBadRequest, models.ErrAppsMissingID, 0, ""},
 		{"/v1/apps/nodawg/calls", "", http.StatusNotFound, models.ErrAppsNotFound, 0, ""},
 		{"/v1/apps/myapp/calls", "", http.StatusOK, nil, 3, ""},
 		{"/v1/apps/myapp/calls?per_page=1", "", http.StatusOK, nil, 1, c3.ID},

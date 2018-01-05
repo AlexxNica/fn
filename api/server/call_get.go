@@ -10,9 +10,9 @@ import (
 func (s *Server) handleCallGet(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	appName := c.MustGet(api.AppName).(string)
+	appID := c.MustGet(api.ID).(string)
 	callID := c.Param(api.Call)
-	callObj, err := s.datastore.GetCall(ctx, appName, callID)
+	callObj, err := s.datastore.GetCall(ctx, appID, callID)
 	if err != nil {
 		handleErrorResponse(c, err)
 		return

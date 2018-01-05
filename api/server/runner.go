@@ -30,7 +30,7 @@ func (s *Server) handleFunctionCall(c *gin.Context) {
 	}
 
 	var a string
-	ai := ctx.Value(api.AppName)
+	ai := ctx.Value(api.ID)
 	if ai == nil {
 		handleErrorResponse(c, errors.New("app name not set"))
 		return
@@ -52,12 +52,12 @@ func parseParams(params gin.Params) agent.Params {
 
 // TODO it would be nice if we could make this have nothing to do with the gin.Context but meh
 // TODO make async store an *http.Request? would be sexy until we have different api format...
-func (s *Server) serve(c *gin.Context, appName, path string) {
+func (s *Server) serve(c *gin.Context, appID, path string) {
 	// GetCall can mod headers, assign an id, look up the route/app (cached),
 	// strip params, etc.
 	call, err := s.agent.GetCall(
 		agent.WithWriter(c.Writer), // XXX (reed): order matters [for now]
-		agent.FromRequest(appName, path, c.Request, parseParams(c.Params)),
+		agent.FromRequest(appID, path, c.Request, parseParams(c.Params)),
 	)
 	if err != nil {
 		handleErrorResponse(c, err)

@@ -110,8 +110,8 @@ func TestRouteCreate(t *testing.T) {
 		{datastore.NewMockInit(nil,
 			[]*models.Route{
 				{
-					AppName: "a",
-					Path:    "/myroute",
+					AppID: "a",
+					Path:  "/myroute",
 				},
 			}, nil,
 		), logs.NewMock(), http.MethodPost, "/v1/apps/a/routes", `{ "route": { "image": "fnproject/hello", "path": "/myroute", "type": "sync" } }`, http.StatusConflict, models.ErrRoutesAlreadyExists},
@@ -149,7 +149,7 @@ func TestRoutePut(t *testing.T) {
 func TestRouteDelete(t *testing.T) {
 	buf := setLogBuffer()
 
-	routes := []*models.Route{{AppName: "a", Path: "/myroute"}}
+	routes := []*models.Route{{AppID: "a", Path: "/myroute"}}
 	apps := []*models.App{{Name: "a", Config: nil}}
 
 	for i, test := range []struct {
@@ -198,17 +198,17 @@ func TestRouteList(t *testing.T) {
 		},
 		[]*models.Route{
 			{
-				AppName: "myapp",
-				Path:    "/myroute",
+				AppID: "myapp",
+				Path:  "/myroute",
 			},
 			{
-				AppName: "myapp",
-				Path:    "/myroute1",
+				AppID: "myapp",
+				Path:  "/myroute1",
 			},
 			{
-				AppName: "myapp",
-				Path:    "/myroute2",
-				Image:   "fnproject/hello",
+				AppID: "myapp",
+				Path:  "/myroute2",
+				Image: "fnproject/hello",
 			},
 		},
 		nil, // no calls
@@ -230,7 +230,7 @@ func TestRouteList(t *testing.T) {
 		expectedLen   int
 		nextCursor    string
 	}{
-		{"/v1/apps//routes", "", http.StatusBadRequest, models.ErrAppsMissingName, 0, ""},
+		{"/v1/apps//routes", "", http.StatusBadRequest, models.ErrAppsMissingID, 0, ""},
 		{"/v1/apps/a/routes", "", http.StatusNotFound, models.ErrAppsNotFound, 0, ""},
 		{"/v1/apps/myapp/routes", "", http.StatusOK, nil, 3, ""},
 		{"/v1/apps/myapp/routes?per_page=1", "", http.StatusOK, nil, 1, r1b},

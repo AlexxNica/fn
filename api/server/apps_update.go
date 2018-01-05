@@ -24,12 +24,7 @@ func (s *Server) handleAppUpdate(c *gin.Context) {
 		return
 	}
 
-	if wapp.App.Name != "" {
-		handleErrorResponse(c, models.ErrAppsNameImmutable)
-		return
-	}
-
-	wapp.App.Name = c.MustGet(api.AppName).(string)
+	wapp.App.ID = c.MustGet(api.ID).(string)
 
 	err = s.FireBeforeAppUpdate(ctx, wapp.App)
 	if err != nil {

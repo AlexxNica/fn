@@ -13,5 +13,5 @@ var (
 	// access the MiddlewareContext.
 	MiddlewareControllerKey = contextKey("middleware_controller")
 	// AppNameKey
-	AppNameKey = contextKey("app_name")
+	AppIDKey = contextKey("id")
 )

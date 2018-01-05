@@ -12,7 +12,7 @@ All `*.up.sql` files must have an accompanying `*.down.sql` file in order to
 pass review.
 
 The contents of each file should contain only 1 ANSI sql query. For help, you
-may refer to https://github.com/mattes/migrate/blob/master/MIGRATIONS.md which
+may refer to [migrations doc](https://github.com/mattes/migrate/blob/master/MIGRATIONS.md) which
 illustrates some of the finer points.
 
 After creating the file you will need to run, in the same directory as this

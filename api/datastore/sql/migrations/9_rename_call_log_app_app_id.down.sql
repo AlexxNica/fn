@@ -1,0 +1,1 @@
+ALTER TABLE logs CHANGE COLUMN app_id app_name VARCHAR(256) NOT NULL;

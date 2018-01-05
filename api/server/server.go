@@ -410,14 +410,14 @@ func (s *Server) bindHandlers(ctx context.Context) {
 
 	if s.nodeType != ServerTypeRunner {
 		v1 := engine.Group("/v1")
-		v1.Use(setAppNameInCtx)
+		v1.Use(setAppIDInCtx)
 		v1.Use(s.apiMiddlewareWrapper())
 		v1.GET("/apps", s.handleAppList)
 		v1.POST("/apps", s.handleAppCreate)
 
 		{
-			apps := v1.Group("/apps/:app")
-			apps.Use(appNameCheck)
+			apps := v1.Group("/apps/:id")
+			apps.Use(appIDCheck)
 
 			apps.GET("", s.handleAppGet)
 			apps.PATCH("", s.handleAppUpdate)
@@ -448,9 +448,9 @@ func (s *Server) bindHandlers(ctx context.Context) {
 
 	if s.nodeType != ServerTypeAPI {
 		runner := engine.Group("/r")
-		runner.Use(appNameCheck)
-		runner.Any("/:app", s.handleFunctionCall)
-		runner.Any("/:app/*route", s.handleFunctionCall)
+		runner.Use(appIDCheck)
+		runner.Any("/:id", s.handleFunctionCall)
+		runner.Any("/:id/*route", s.handleFunctionCall)
 	}
 
 	engine.NoRoute(func(c *gin.Context) {

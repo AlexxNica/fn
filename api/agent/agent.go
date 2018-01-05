@@ -176,9 +176,9 @@ func transformTimeout(e error, isRetriable bool) error {
 // cases. Only timeouts can be a simple dequeue while other cases are actual errors.
 func (a *agent) handleStatsDequeue(err error, callI Call) {
 	if err == context.DeadlineExceeded {
-		a.stats.Dequeue(callI.Model().AppName, callI.Model().Path)
+		a.stats.Dequeue(callI.Model().AppID, callI.Model().Path)
 	} else {
-		a.stats.DequeueAndFail(callI.Model().AppName, callI.Model().Path)
+		a.stats.DequeueAndFail(callI.Model().AppID, callI.Model().Path)
 	}
 }
 
@@ -193,7 +193,7 @@ func (a *agent) Submit(callI Call) error {
 	}
 
 	// increment queued count
-	a.stats.Enqueue(callI.Model().AppName, callI.Model().Path)
+	a.stats.Enqueue(callI.Model().AppID, callI.Model().Path)
 
 	call := callI.(*call)
 	ctx := call.req.Context()
@@ -204,13 +204,13 @@ func (a *agent) Submit(callI Call) error {
 
 	// agent_submit_global has no parent span because we don't want it to inherit fn_path
 	span_app := opentracing.StartSpan("agent_submit_app")
-	span_app.SetBaggageItem("fn_appname", callI.Model().AppName)
+	span_app.SetBaggageItem("fn_appname", callI.Model().AppID)
 	defer span_app.Finish()
 
 	// agent_submit has a parent span in the usual way
 	// it doesn't matter if it inherits fn_appname or fn_path (and we set them here in any case)
 	span, ctx := opentracing.StartSpanFromContext(ctx, "agent_submit")
-	span.SetBaggageItem("fn_appname", callI.Model().AppName)
+	span.SetBaggageItem("fn_appname", callI.Model().AppID)
 	span.SetBaggageItem("fn_path", callI.Model().Path)
 	defer span.Finish()
 
@@ -236,7 +236,7 @@ func (a *agent) Submit(callI Call) error {
 	}
 
 	// decrement queued count, increment running count
-	a.stats.DequeueAndStart(callI.Model().AppName, callI.Model().Path)
+	a.stats.DequeueAndStart(callI.Model().AppID, callI.Model().Path)
 
 	err = slot.exec(ctx, call)
 	// pass this error (nil or otherwise) to end directly, to store status, etc
@@ -244,10 +244,10 @@ func (a *agent) Submit(callI Call) error {
 
 	if err == nil {
 		// decrement running count, increment completed count
-		a.stats.Complete(callI.Model().AppName, callI.Model().Path)
+		a.stats.Complete(callI.Model().AppID, callI.Model().Path)
 	} else {
 		// decrement running count, increment failed count
-		a.stats.Failed(callI.Model().AppName, callI.Model().Path)
+		a.stats.Failed(callI.Model().AppID, callI.Model().Path)
 	}
 
 	// TODO: we need to allocate more time to store the call + logs in case the call timed out,
@@ -539,7 +539,7 @@ func (a *agent) runHot(ctxArg context.Context, call *call, tok ResourceToken) {
 	// set up the stderr for the first one to capture any logs before the slot is
 	// executed and between hot functions TODO this is still a little tobias funke
 	stderr := newLineWriter(&logWriter{
-		logrus.WithFields(logrus.Fields{"between_log": true, "app_name": call.AppName, "path": call.Path, "image": call.Image, "container_id": cid}),
+		logrus.WithFields(logrus.Fields{"between_log": true, "app_name": call.AppID, "path": call.Path, "image": call.Image, "container_id": cid}),
 	})
 
 	container := &container{
@@ -552,7 +552,7 @@ func (a *agent) runHot(ctxArg context.Context, call *call, tok ResourceToken) {
 		stderr: &ghostWriter{inner: stderr},
 	}
 
-	logger := logrus.WithFields(logrus.Fields{"id": container.id, "app": call.AppName, "route": call.Path, "image": call.Image, "memory": call.Memory, "format": call.Format, "idle_timeout": call.IdleTimeout})
+	logger := logrus.WithFields(logrus.Fields{"id": container.id, "app": call.AppID, "route": call.Path, "image": call.Image, "memory": call.Memory, "format": call.Format, "idle_timeout": call.IdleTimeout})
 	ctx = common.WithLogger(ctx, logger)
 
 	cookie, err := a.driver.Prepare(ctx, container)

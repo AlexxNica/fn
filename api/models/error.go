@@ -24,9 +24,9 @@ var (
 		code:  http.StatusServiceUnavailable,
 		error: errors.New("Timed out - server too busy"),
 	}
-	ErrAppsMissingName = err{
+	ErrAppsMissingID = err{
 		code:  http.StatusBadRequest,
-		error: errors.New("Missing app name"),
+		error: errors.New("Missing app ID"),
 	}
 	ErrAppsTooLongName = err{
 		code:  http.StatusBadRequest,
@@ -44,10 +44,6 @@ var (
 		code:  http.StatusBadRequest,
 		error: errors.New("Missing new application"),
 	}
-	ErrAppsNameImmutable = err{
-		code:  http.StatusConflict,
-		error: errors.New("Could not update - name is immutable"),
-	}
 	ErrAppsNotFound = err{
 		code:  http.StatusNotFound,
 		error: errors.New("App not found"),
@@ -56,9 +52,9 @@ var (
 		code:  http.StatusConflict,
 		error: errors.New("Cannot remove apps with routes"),
 	}
-	ErrDatastoreEmptyAppName = err{
+	ErrDatastoreEmptyAppID = err{
 		code:  http.StatusBadRequest,
-		error: errors.New("Missing app name"),
+		error: errors.New("Missing app ID"),
 	}
 	ErrDatastoreEmptyRoutePath = err{
 		code:  http.StatusBadRequest,
@@ -120,9 +116,9 @@ var (
 		code:  http.StatusBadRequest,
 		error: errors.New("Invalid route Format"),
 	}
-	ErrRoutesMissingAppName = err{
+	ErrRoutesMissingAppID = err{
 		code:  http.StatusBadRequest,
-		error: errors.New("Missing route AppName"),
+		error: errors.New("Missing route app ID"),
 	}
 	ErrRoutesMissingImage = err{
 		code:  http.StatusBadRequest,

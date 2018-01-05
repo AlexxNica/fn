@@ -3,10 +3,12 @@ package models
 import (
 	"time"
 
+	"github.com/fnproject/fn/api/id"
 	"github.com/go-openapi/strfmt"
 )
 
 type App struct {
+	ID        string          `json:"id" db:"id"`
 	Name      string          `json:"name" db:"name"`
 	Config    Config          `json:"config,omitempty" db:"config"`
 	CreatedAt strfmt.DateTime `json:"created_at,omitempty" db:"created_at"`
@@ -24,11 +26,12 @@ func (a *App) SetDefaults() {
 		// keeps the json from being nil
 		a.Config = map[string]string{}
 	}
+	a.ID = id.New().String()
 }
 
 func (a *App) Validate() error {
-	if a.Name == "" {
-		return ErrAppsMissingName
+	if a.ID == "" {
+		return ErrAppsMissingID
 	}
 	if len(a.Name) > maxAppName {
 		return ErrAppsTooLongName
@@ -73,6 +76,8 @@ func (a1 *App) Equals(a2 *App) bool {
 func (a *App) Update(src *App) {
 	original := a.Clone()
 
+	a.Name = src.Name
+
 	if src.Config != nil {
 		if a.Config == nil {
 			a.Config = make(Config)
@@ -93,7 +98,7 @@ func (a *App) Update(src *App) {
 
 // AppFilter is the filter used for querying apps
 type AppFilter struct {
-	Name string
+	ID string
 	// NameIn will filter by all names in the list (IN query)
 	NameIn  []string
 	PerPage int

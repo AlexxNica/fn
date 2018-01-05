@@ -267,13 +267,15 @@ func TestApiNode(t *testing.T) {
 
 func TestHybridEndpoints(t *testing.T) {
 	buf := setLogBuffer()
+	appID := id.New().String()
 	ds := datastore.NewMockInit(
 		[]*models.App{{
+			ID:   appID,
 			Name: "myapp",
 		}},
 		[]*models.Route{{
-			AppName: "myapp",
-			Path:    "yodawg",
+			AppID: appID,
+			Path:  "yodawg",
 		}}, nil,
 	)
 
@@ -283,9 +285,9 @@ func TestHybridEndpoints(t *testing.T) {
 
 	newCallBody := func() string {
 		call := &models.Call{
-			ID:      id.New().String(),
-			AppName: "myapp",
-			Path:    "yodawg",
+			ID:    id.New().String(),
+			AppID: appID,
+			Path:  "yodawg",
 			// TODO ?
 		}
 		var b bytes.Buffer

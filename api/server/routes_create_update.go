@@ -83,7 +83,7 @@ func (s *Server) ensureRoute(ctx context.Context, method string, wroute *models.
 		}
 		return routeResponse{"Route successfully created", wroute.Route}, nil
 	case http.MethodPut:
-		_, err := s.datastore.GetRoute(ctx, wroute.Route.AppName, wroute.Route.Path)
+		_, err := s.datastore.GetRoute(ctx, wroute.Route.AppID, wroute.Route.Path)
 		if err != nil && err == models.ErrRoutesNotFound {
 			err := s.submitRoute(ctx, wroute)
 			if err != nil {
@@ -108,12 +108,12 @@ func (s *Server) ensureRoute(ctx context.Context, method string, wroute *models.
 
 // ensureApp will only execute if it is on post or put. Patch is not allowed to create apps.
 func (s *Server) ensureApp(ctx context.Context, wroute *models.RouteWrapper, method string) error {
-	app, err := s.datastore.GetApp(ctx, wroute.Route.AppName)
+	app, err := s.datastore.GetApp(ctx, wroute.Route.AppID)
 	if err != nil && err != models.ErrAppsNotFound {
 		return err
 	} else if app == nil {
 		// Create a new application
-		newapp := &models.App{Name: wroute.Route.AppName}
+		newapp := &models.App{Name: wroute.Route.AppID}
 		if err = newapp.Validate(); err != nil {
 			return err
 		}
@@ -147,7 +147,7 @@ func bindRoute(c *gin.Context, method string, wroute *models.RouteWrapper) error
 	if wroute.Route == nil {
 		return models.ErrRoutesMissingNew
 	}
-	wroute.Route.AppName = c.MustGet(api.AppName).(string)
+	wroute.Route.AppID = c.MustGet(api.ID).(string)
 
 	if method == http.MethodPut || method == http.MethodPatch {
 		p := path.Clean(c.MustGet(api.Path).(string))

@@ -8,6 +8,7 @@ import (
 
 	"github.com/fnproject/fn/api/agent"
 	"github.com/fnproject/fn/api/datastore"
+	"github.com/fnproject/fn/api/id"
 	"github.com/fnproject/fn/api/models"
 	"github.com/fnproject/fn/api/mqs"
 	"github.com/gin-gonic/gin"
@@ -35,14 +36,15 @@ func testRouterAsync(ds models.Datastore, mq models.MessageQueue, rnr agent.Agen
 func TestRouteRunnerAsyncExecution(t *testing.T) {
 	buf := setLogBuffer()
 
+	myAppID := id.New().String()
 	ds := datastore.NewMockInit(
 		[]*models.App{
-			{Name: "myapp", Config: map[string]string{"app": "true"}},
+			{ID: myAppID, Name: "myapp", Config: map[string]string{"app": "true"}},
 		},
 		[]*models.Route{
-			{Type: "async", Path: "/myroute", AppName: "myapp", Image: "fnproject/hello", Config: map[string]string{"test": "true"}, Memory: 128, Timeout: 30, IdleTimeout: 30},
-			{Type: "async", Path: "/myerror", AppName: "myapp", Image: "fnproject/error", Config: map[string]string{"test": "true"}, Memory: 128, Timeout: 30, IdleTimeout: 30},
-			{Type: "async", Path: "/myroute/:param", AppName: "myapp", Image: "fnproject/hello", Config: map[string]string{"test": "true"}, Memory: 128, Timeout: 30, IdleTimeout: 30},
+			{Type: "async", Path: "/myroute", AppID: myAppID, Image: "fnproject/hello", Config: map[string]string{"test": "true"}, Memory: 128, Timeout: 30, IdleTimeout: 30},
+			{Type: "async", Path: "/myerror", AppID: myAppID, Image: "fnproject/error", Config: map[string]string{"test": "true"}, Memory: 128, Timeout: 30, IdleTimeout: 30},
+			{Type: "async", Path: "/myroute/:param", AppID: myAppID, Image: "fnproject/hello", Config: map[string]string{"test": "true"}, Memory: 128, Timeout: 30, IdleTimeout: 30},
 		}, nil,
 	)
 	mq := &mqs.Mock{}

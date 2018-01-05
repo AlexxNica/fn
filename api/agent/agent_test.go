@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/fnproject/fn/api/datastore"
+	"github.com/fnproject/fn/api/id"
 	"github.com/fnproject/fn/api/models"
 	"github.com/fnproject/fn/api/mqs"
 	"github.com/sirupsen/logrus"
@@ -57,15 +58,16 @@ func TestCallConfigurationRequest(t *testing.T) {
 	cfg := models.Config{"APP_VAR": "FOO"}
 	rCfg := models.Config{"ROUTE_VAR": "BAR"}
 
+	appID := id.New().String()
 	ds := datastore.NewMockInit(
 		[]*models.App{
-			{Name: appName, Config: cfg},
+			{ID: appID, Name: appName, Config: cfg},
 		},
 		[]*models.Route{
 			{
 				Config:      rCfg,
 				Path:        path,
-				AppName:     appName,
+				AppID:       appID,
 				Image:       image,
 				Type:        typ,
 				Format:      format,
@@ -82,7 +84,7 @@ func TestCallConfigurationRequest(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	method := "GET"
-	url := "http://127.0.0.1:8080/r/" + appName + path
+	url := "http://127.0.0.1:8080/r/" + appID + path
 	payload := "payload"
 	contentLength := strconv.Itoa(len(payload))
 	req, err := http.NewRequest(method, url, strings.NewReader(payload))
@@ -102,7 +104,7 @@ func TestCallConfigurationRequest(t *testing.T) {
 
 	call, err := a.GetCall(
 		WithWriter(w), // XXX (reed): order matters [for now]
-		FromRequest(appName, path, req, params),
+		FromRequest(appID, path, req, params),
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -114,8 +116,8 @@ func TestCallConfigurationRequest(t *testing.T) {
 	if model.ID == "" {
 		t.Fatal("model does not have id, GetCall should assign id")
 	}
-	if model.AppName != appName {
-		t.Fatal("app name mismatch", model.AppName, appName)
+	if model.AppID != appID {
+		t.Fatal("app name mismatch", model.AppID, appID)
 	}
 	if model.Path != path {
 		t.Fatal("path mismatch", model.Path, path)
@@ -243,11 +245,10 @@ func TestCallConfigurationModel(t *testing.T) {
 		"ROUTE_VAR":   "BAR",
 		"DOUBLE_VAR":  "BIZ, BAZ",
 	}
-
 	cm := &models.Call{
 		BaseEnv:     env,
 		EnvVars:     env,
-		AppName:     appName,
+		AppID:       id.New().String(),
 		Path:        path,
 		Image:       image,
 		Type:        typ,
@@ -318,11 +319,10 @@ func TestAsyncCallHeaders(t *testing.T) {
 		"Fn_header_content_type":   contentType,
 		"Fn_header_content_length": contentLength,
 	}
-
 	cm := &models.Call{
 		BaseEnv:     env,
 		EnvVars:     env,
-		AppName:     appName,
+		AppID:       id.New().String(),
 		Path:        path,
 		Image:       image,
 		Type:        typ,
@@ -421,7 +421,7 @@ func TestSubmitError(t *testing.T) {
 	cm := &models.Call{
 		BaseEnv:     env,
 		EnvVars:     env,
-		AppName:     appName,
+		AppID:       id.New().String(),
 		Path:        path,
 		Image:       image,
 		Type:        typ,

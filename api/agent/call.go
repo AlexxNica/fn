@@ -49,14 +49,14 @@ type Param struct {
 }
 type Params []Param
 
-func FromRequest(appName, path string, req *http.Request, params Params) CallOpt {
+func FromRequest(appID, path string, req *http.Request, params Params) CallOpt {
 	return func(a *agent, c *call) error {
-		app, err := a.da.GetApp(req.Context(), appName)
+		app, err := a.da.GetApp(req.Context(), appID)
 		if err != nil {
 			return err
 		}
 
-		route, err := a.da.GetRoute(req.Context(), appName, path)
+		route, err := a.da.GetRoute(req.Context(), appID, path)
 		if err != nil {
 			return err
 		}
@@ -65,7 +65,7 @@ func FromRequest(appName, path string, req *http.Request, params Params) CallOpt
 			route.Format = "default"
 		}
 
-		id := id.New().String()
+		callID := id.New().String()
 
 		// baseVars are the vars on the route & app, not on this specific request [for hot functions]
 		baseVars := make(map[string]string, len(app.Config)+len(route.Config)+3)
@@ -81,7 +81,8 @@ func FromRequest(appName, path string, req *http.Request, params Params) CallOpt
 		}
 
 		baseVars["FN_FORMAT"] = route.Format
-		baseVars["FN_APP_NAME"] = appName
+		baseVars["FN_APP_NAME"] = app.Name
+		baseVars["FN_APP_ID"] = app.ID
 		baseVars["FN_PATH"] = route.Path
 		// TODO: might be a good idea to pass in: envVars["FN_BASE_PATH"] = fmt.Sprintf("/r/%s", appName) || "/" if using DNS entries per app
 		baseVars["FN_MEMORY"] = fmt.Sprintf("%d", route.Memory)
@@ -94,7 +95,7 @@ func FromRequest(appName, path string, req *http.Request, params Params) CallOpt
 			envVars[k] = v
 		}
 
-		envVars["FN_CALL_ID"] = id
+		envVars["FN_CALL_ID"] = callID
 		envVars["FN_METHOD"] = req.Method
 		envVars["FN_REQUEST_URL"] = func() string {
 			if req.URL.Scheme == "" {
@@ -140,7 +141,7 @@ func FromRequest(appName, path string, req *http.Request, params Params) CallOpt
 		// TODO this relies on ordering of opts, but tests make sure it works, probably re-plumb/destroy headers
 		// TODO async should probably supply an http.ResponseWriter that records the logs, to attach response headers to
 		if rw, ok := c.w.(http.ResponseWriter); ok {
-			rw.Header().Add("FN_CALL_ID", id)
+			rw.Header().Add("FN_CALL_ID", callID)
 			for k, vs := range route.Headers {
 				for _, v := range vs {
 					// pre-write in these headers to response
@@ -157,10 +158,10 @@ func FromRequest(appName, path string, req *http.Request, params Params) CallOpt
 		}
 
 		c.Call = &models.Call{
-			ID:      id,
-			AppName: appName,
-			Path:    route.Path,
-			Image:   route.Image,
+			ID:    callID,
+			AppID: app.ID,
+			Path:  route.Path,
+			Image: route.Image,
 			// Delay: 0,
 			Type:   route.Type,
 			Format: route.Format,
@@ -273,11 +274,11 @@ func (a *agent) GetCall(opts ...CallOpt) (Call, error) {
 	c.ct = a
 
 	ctx, _ := common.LoggerWithFields(c.req.Context(),
-		logrus.Fields{"id": c.ID, "app": c.AppName, "route": c.Path})
+		logrus.Fields{"id": c.ID, "app_id": c.AppID, "route": c.Path})
 	c.req = c.req.WithContext(ctx)
 
 	// setup stderr logger separate (don't inherit ctx vars)
-	logger := logrus.WithFields(logrus.Fields{"user_log": true, "app_name": c.AppName, "path": c.Path, "image": c.Image, "call_id": c.ID})
+	logger := logrus.WithFields(logrus.Fields{"user_log": true, "app_id": c.AppID, "path": c.Path, "image": c.Image, "call_id": c.ID})
 	c.stderr = setupLogger(logger)
 	if c.w == nil {
 		// send STDOUT to logs if no writer given (async...)

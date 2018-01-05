@@ -11,6 +11,7 @@ import (
 
 	"github.com/fnproject/fn/api/agent"
 	"github.com/fnproject/fn/api/datastore"
+	"github.com/fnproject/fn/api/id"
 	"github.com/fnproject/fn/api/logs"
 	"github.com/fnproject/fn/api/models"
 	"github.com/fnproject/fn/api/mqs"
@@ -124,16 +125,17 @@ func TestRouteRunnerPost(t *testing.T) {
 func TestRouteRunnerExecution(t *testing.T) {
 	buf := setLogBuffer()
 
+	myAppID := id.New().String()
 	ds := datastore.NewMockInit(
 		[]*models.App{
-			{Name: "myapp", Config: models.Config{}},
+			{ID: myAppID, Name: "myapp", Config: models.Config{}},
 		},
 		[]*models.Route{
-			{Path: "/", AppName: "myapp", Image: "fnproject/hello", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30, Headers: map[string][]string{"X-Function": {"Test"}}},
-			{Path: "/myroute", AppName: "myapp", Image: "fnproject/hello", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30, Headers: map[string][]string{"X-Function": {"Test"}}},
-			{Path: "/myerror", AppName: "myapp", Image: "fnproject/error", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30, Headers: map[string][]string{"X-Function": {"Test"}}},
-			{Path: "/mydne", AppName: "myapp", Image: "fnproject/imagethatdoesnotexist", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30},
-			{Path: "/mydnehot", AppName: "myapp", Image: "fnproject/imagethatdoesnotexist", Type: "sync", Format: "http", Memory: 128, Timeout: 30, IdleTimeout: 30},
+			{Path: "/", AppID: myAppID, Image: "fnproject/hello", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30, Headers: map[string][]string{"X-Function": {"Test"}}},
+			{Path: "/myroute", AppID: myAppID, Image: "fnproject/hello", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30, Headers: map[string][]string{"X-Function": {"Test"}}},
+			{Path: "/myerror", AppID: myAppID, Image: "fnproject/error", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30, Headers: map[string][]string{"X-Function": {"Test"}}},
+			{Path: "/mydne", AppID: myAppID, Image: "fnproject/imagethatdoesnotexist", Type: "sync", Memory: 128, Timeout: 30, IdleTimeout: 30},
+			{Path: "/mydnehot", AppID: myAppID, Image: "fnproject/imagethatdoesnotexist", Type: "sync", Format: "http", Memory: 128, Timeout: 30, IdleTimeout: 30},
 		}, nil,
 	)
 
@@ -198,12 +200,13 @@ func (mock *errorMQ) Code() int                                                {
 
 func TestFailedEnqueue(t *testing.T) {
 	buf := setLogBuffer()
+	myAppID := id.New().String()
 	ds := datastore.NewMockInit(
 		[]*models.App{
-			{Name: "myapp", Config: models.Config{}},
+			{ID: myAppID, Name: "myapp", Config: models.Config{}},
 		},
 		[]*models.Route{
-			{Path: "/dummy", AppName: "myapp", Image: "dummy/dummy", Type: "async", Memory: 128, Timeout: 30, IdleTimeout: 30},
+			{Path: "/dummy", AppID: myAppID, Image: "dummy/dummy", Type: "async", Memory: 128, Timeout: 30, IdleTimeout: 30},
 		}, nil,
 	)
 	err := errors.New("Unable to push task to queue")
@@ -238,15 +241,16 @@ func TestRouteRunnerTimeout(t *testing.T) {
 	models.RouteMaxMemory = uint64(1024 * 1024 * 1024) // 1024 TB
 	hugeMem := uint64(models.RouteMaxMemory - 1)
 
+	myAppID := id.New().String()
 	ds := datastore.NewMockInit(
 		[]*models.App{
-			{Name: "myapp", Config: models.Config{}},
+			{ID: myAppID, Name: "myapp", Config: models.Config{}},
 		},
 		[]*models.Route{
-			{Path: "/cold", AppName: "myapp", Image: "fnproject/fn-test-utils", Type: "sync", Memory: 128, Timeout: 4, IdleTimeout: 30},
-			{Path: "/hot", AppName: "myapp", Image: "fnproject/fn-test-utils", Type: "sync", Format: "http", Memory: 128, Timeout: 4, IdleTimeout: 30},
-			{Path: "/bigmem-cold", AppName: "myapp", Image: "fnproject/fn-test-utils", Type: "sync", Memory: hugeMem, Timeout: 1, IdleTimeout: 30},
-			{Path: "/bigmem-hot", AppName: "myapp", Image: "fnproject/fn-test-utils", Type: "sync", Format: "http", Memory: hugeMem, Timeout: 1, IdleTimeout: 30},
+			{Path: "/cold", AppID: myAppID, Image: "fnproject/fn-test-utils", Type: "sync", Memory: 128, Timeout: 4, IdleTimeout: 30},
+			{Path: "/hot", AppID: myAppID, Image: "fnproject/fn-test-utils", Type: "sync", Format: "http", Memory: 128, Timeout: 4, IdleTimeout: 30},
+			{Path: "/bigmem-cold", AppID: myAppID, Image: "fnproject/fn-test-utils", Type: "sync", Memory: hugeMem, Timeout: 1, IdleTimeout: 30},
+			{Path: "/bigmem-hot", AppID: myAppID, Image: "fnproject/fn-test-utils", Type: "sync", Format: "http", Memory: hugeMem, Timeout: 1, IdleTimeout: 30},
 		}, nil,
 	)
 

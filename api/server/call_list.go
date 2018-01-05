@@ -14,10 +14,10 @@ import (
 func (s *Server) handleCallList(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	appName := c.MustGet(api.AppName).(string)
+	appID := c.MustGet(api.ID).(string)
 
 	// TODO api.CRoute needs to be escaped probably, since it has '/' a lot
-	filter := models.CallFilter{AppName: appName, Path: c.Query("path")}
+	filter := models.CallFilter{AppID: appID, Path: c.Query("path")}
 	filter.Cursor, filter.PerPage = pageParams(c, false) // ids are url safe
 
 	var err error
@@ -31,7 +31,7 @@ func (s *Server) handleCallList(c *gin.Context) {
 
 	if len(calls) == 0 {
 		// TODO this should be done in front of this handler to even get here...
-		_, err = s.datastore.GetApp(c, appName)
+		_, err = s.datastore.GetApp(c, appID)
 	}
 
 	if err != nil {
